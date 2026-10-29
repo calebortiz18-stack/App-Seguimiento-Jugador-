@@ -41,16 +41,10 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 
-    <!-- 1. DESACTIVAR AUTOLOAD DE ALPINE -->
-    <script>
-        window.deferLoadingAlpine = function (callback) {
-            window.startAlpine = callback;
-        };
-    </script>
-    <!-- Alpine JS Script sin atributo defer para control total -->
-    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <!-- Alpine JS (Carga normal pero con estructura blindada) -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
-    <!-- 2. CARGA DE FIREBASE SDKs -->
+    <!-- FIREBASE SDKs (Modular ESM) -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { 
@@ -86,12 +80,11 @@
             measurementId: "G-F9NWD497XN"
         };
 
-        // Inicializar Firebase
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // Guardar globalmente
+        // Objeto global Firebase seguro
         window.FB = {
             auth,
             db,
@@ -113,10 +106,8 @@
             getDocs
         };
 
-        // 3. INICIAR ALPINE ÚNICAMENTE CUANDO FIREBASE YA EXISTE
-        if (typeof window.startAlpine === 'function') {
-            window.startAlpine();
-        }
+        // Disparamos evento de aviso por si Alpine ya arrancó
+        window.dispatchEvent(new CustomEvent('firebase-loaded'));
     </script>
 
     <style>
@@ -261,7 +252,6 @@
                 </div>
             </div>
 
-            <!-- SECCIÓN EN CAMPO Y BANQUILLO -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 space-y-3">
                     <h4 class="text-xs font-bold text-emerald-400 uppercase">En Campo (<span x-text="playersOnField.length"></span>)</h4>
@@ -303,13 +293,84 @@
         </section>
     </main>
 
-    <!-- COMPONENTE ALPINE -->
+    <!-- MOTOR ALPINE BLINDADO -->
     <script>
         function pwaApp() {
             return {
                 currentUser: null,
                 authLoading: true,
                 authMode: 'login',
-                authFormmerPrompt() {
+                authForm: { email: '', password: '' },
+                currentView: 'match',
+                teams: [],
+                currentTeamId: null,
+                currentTeamPlayers: [],
+                playersOnField: [],
+                playersOnBench: [],
+                match: { opponent: '', halfDuration: 45, period: 1, seconds: 0, timerRunning: false },
+                matchPlayerStats: {},
+                toast: { show: false, message: '', type: 'success' },
+
+                initApp() {
+                    const checkFirebase = () => {
+                        if (window.FB && window.FB.auth) {
+                            window.FB.onAuthStateChanged(window.FB.auth, (user) => {
+                                this.currentUser = user;
+                                this.authLoading = false;
+                                if (user) {
+                                    this.loadInitialData();
+                                }
+                            });
+                        } else {
+                            setTimeout(checkFirebase, 50);
+                        }
+                    };
+                    checkFirebase();
+                },
+
+                showToast(message, type = 'success') {
+                    this.toast = { show: true, message, type };
+                    setTimeout(() => { this.toast.show = false; }, 3000);
+                },
+
+                formatTime(seconds) {
+                    const mins = Math.floor(seconds / 60);
+                    const secs = seconds % 60;
+                    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+                },
+
+                get currentMatchMinute() {
+                    return Math.floor(this.match.seconds / 60);
+                },
+
+                toggleTimer() {
+                    this.match.timerRunning = !this.match.timerRunning;
+                },
+
+                resetTimerPrompt() {
                     this.match.seconds = 0;
                     this.match.timerRunning = false;
+                },
+
+                substituteIn(player) {
+                    this.playersOnBench = this.playersOnBench.filter(p => p.id !== player.id);
+                    this.playersOnField.push(player);
+                },
+
+                substituteOut(player) {
+                    this.playersOnField = this.playersOnField.filter(p => p.id !== player.id);
+                    this.playersOnBench.push(player);
+                },
+
+                async handleEmailAuth() {
+                    try {
+                        this.authLoading = true;
+                        if (this.authMode === 'login') {
+                            await window.FB.signInWithEmailAndPassword(window.FB.auth, this.authForm.email, this.authForm.password);
+                        } else {
+                            await window.FB.createUserWithEmailAndPassword(window.FB.auth, this.authForm.email, this.authForm.password);
+                        }
+                        this.showToast("¡Sesión iniciada correctamente!");
+                    } catch (error) {
+                        this.showToast(error.message, 'error');
+                        this.authLoading
