@@ -12,41 +12,6 @@
     <meta name="apple-mobile-web-app-title" content="CoachSquad">
     <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/53/53283.png">
 
-    <!-- Dynamic PWA Manifest Generator -->
-    <script>
-        (function() {
-            const manifest = {
-                name: "CoachSquad - App de Gestión Deportiva",
-                short_name: "CoachSquad",
-                description: "Gestión de equipos, minutajes en vivo y fichas de desarrollo individual con autenticación",
-                start_url: "./",
-                display: "standalone",
-                background_color: "#020617",
-                theme_color: "#16a34a",
-                icons: [
-                    {
-                        src: "https://cdn-icons-png.flaticon.com/512/53/53283.png",
-                        sizes: "192x192",
-                        type: "image/png",
-                        purpose: "any maskable"
-                    },
-                    {
-                        src: "https://cdn-icons-png.flaticon.com/512/53/53283.png",
-                        sizes: "512x512",
-                        type: "image/png"
-                    }
-                ]
-            };
-            const stringManifest = JSON.stringify(manifest);
-            const blob = new Blob([stringManifest], {type: 'application/json'});
-            const manifestUrl = URL.createObjectURL(blob);
-            const link = document.createElement('link');
-            link.rel = 'manifest';
-            link.href = manifestUrl;
-            document.head.appendChild(link);
-        })();
-    </script>
-
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -82,14 +47,13 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { 
             getAuth, 
-            signInWithCustomToken, 
-            signInAnonymously, 
             signInWithEmailAndPassword, 
             createUserWithEmailAndPassword, 
             GoogleAuthProvider, 
             signInWithPopup, 
             signOut, 
-            onAuthStateChanged 
+            onAuthStateChanged,
+            signInAnonymously
         } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { 
             getFirestore, 
@@ -104,49 +68,32 @@
             getDocs 
         } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // Global Firebase Configuration & State Setup
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'coachsquad-app';
-        <script type="module">
-  // Import the functions you need from the SDKs you need
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/13.1.0/firebase-app.js";
-  import { getAnalytics } from "https://www.gstatic.com/firebasejs/13.1.0/firebase-analytics.js";
-  // TODO: Add SDKs for Firebase products that you want to use
-  // https://firebase.google.com/docs/web/setup#available-libraries
-
-  // Your web app's Firebase configuration
-  // For Firebase JS SDK v7.20.0 and later, measurementId is optional
-  const firebaseConfig = {
-    apiKey: "AIzaSyDFjM15xA5PxxwCUSIRNjegKN7PPfL8hcc",
-    authDomain: "gestion-de-equipos-d2839.firebaseapp.com",
-    projectId: "gestion-de-equipos-d2839",
-    storageBucket: "gestion-de-equipos-d2839.firebasestorage.app",
-    messagingSenderId: "681431108301",
-    appId: "1:681431108301:web:15307130648999e140b784",
-    measurementId: "G-F9NWD497XN"
-  };
-
-  // Initialize Firebase
-  const app = initializeApp(firebaseConfig);
-  const analytics = getAnalytics(app);
-</script>
+        // Configuración real de tu proyecto de Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyDFjM15xA5PxxwCUSIRNjegKN7PPfL8hcc",
+            authDomain: "gestion-de-equipos-d2839.firebaseapp.com",
+            projectId: "gestion-de-equipos-d2839",
+            storageBucket: "gestion-de-equipos-d2839.firebasestorage.app",
+            messagingSenderId: "681431108301",
+            appId: "1:681431108301:web:15307130648999e140b784",
+            measurementId: "G-F9NWD497XN"
+        };
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // Export Firebase references globally for Alpine component usage
+        // Exportar referencias globalmente para el componente Alpine
         window.FB = {
-            appId,
             auth,
             db,
-            signInWithCustomToken,
-            signInAnonymously,
             signInWithEmailAndPassword,
             createUserWithEmailAndPassword,
             GoogleAuthProvider,
             signInWithPopup,
             signOut,
             onAuthStateChanged,
+            signInAnonymously,
             doc,
             getDoc,
             setDoc,
@@ -176,7 +123,7 @@
 <body class="bg-slate-950 text-slate-100 font-sans min-h-screen pb-24 lg:pb-8 flex flex-col selection:bg-pitch-500 selection:text-white" x-data="pwaApp()" x-init="initApp()">
 
     <!-- AUTH MODAL / LOGIN SCREEN (When not logged in) -->
-    <div x-show="!currentUser && !authLoading" class="fixed inset-0 z-50 bg-slate-950/95 backdrop-blur-md flex items-center justify-center p-4">
+    <div x-show="!currentUser && !authLoading" class="fixed inset-0 z-50 bg-slate-950/95 backdrop-blur-md flex items-center justify-center p-4" x-cloak>
         <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl space-y-6">
             <div class="text-center space-y-2">
                 <div class="w-16 h-16 bg-gradient-to-tr from-pitch-600 to-emerald-400 rounded-2xl flex items-center justify-center text-white mx-auto shadow-lg shadow-pitch-600/30">
@@ -226,7 +173,7 @@
     </div>
 
     <!-- CARGANDO AUTH -->
-    <div x-show="authLoading" class="fixed inset-0 z-50 bg-slate-950 flex items-center justify-center">
+    <div x-show="authLoading" class="fixed inset-0 z-50 bg-slate-950 flex items-center justify-center" x-cloak>
         <div class="text-center space-y-3">
             <i class="fa-solid fa-circle-notch fa-spin text-3xl text-pitch-500"></i>
             <p class="text-xs font-bold text-slate-400">Cargando tus datos y equipos...</p>
@@ -234,7 +181,7 @@
     </div>
 
     <!-- HEADER / APP BAR -->
-    <header class="bg-slate-900/90 backdrop-blur-md border-b border-slate-800/80 sticky top-0 z-40 no-print">
+    <header class="bg-slate-900/90 backdrop-blur-md border-b border-slate-800/80 sticky top-0 z-40 no-print" x-show="currentUser" x-cloak>
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex justify-between items-center">
             <div class="flex items-center space-x-3">
                 <div class="w-10 h-10 bg-gradient-to-tr from-pitch-600 to-emerald-400 rounded-xl flex items-center justify-center text-white shadow-lg shadow-pitch-600/30">
@@ -259,13 +206,6 @@
 
             <!-- Botones de Acción Global & Perfil -->
             <div class="flex items-center gap-2">
-                <template x-if="deferredPrompt">
-                    <button @click="installPwa()" class="px-3 py-1.5 bg-pitch-600 hover:bg-pitch-500 text-white text-xs font-bold rounded-xl shadow-lg shadow-pitch-600/20 transition flex items-center gap-1.5 active:scale-95 animate-pulse">
-                        <i class="fa-solid fa-download"></i>
-                        <span class="hidden sm:inline">Instalar App</span>
-                    </button>
-                </template>
-
                 <div x-show="currentUser" class="flex items-center gap-2 pl-2 border-l border-slate-800">
                     <div class="text-right hidden md:block">
                         <div class="text-xs font-bold text-white" x-text="currentUser?.email || 'Usuario Local'"></div>
@@ -287,7 +227,7 @@
     </div>
 
     <!-- MAIN CONTAINER -->
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 sm:pt-6 flex-1 w-full space-y-6" x-show="currentUser">
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 sm:pt-6 flex-1 w-full space-y-6" x-show="currentUser" x-cloak>
 
         <!-- NAVEGACIÓN DESKTOP (TABS) -->
         <div class="hidden lg:flex border-b border-slate-800/80 space-x-2 no-print">
@@ -424,795 +364,4 @@
                         <template x-for="p in playersOnBench" :key="p.id">
                             <div class="bg-slate-950 border border-slate-800 hover:border-slate-700 rounded-xl p-3 flex items-center justify-between transition">
                                 <div class="flex items-center gap-3">
-                                    <span class="w-8 h-8 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-400 font-black flex items-center justify-center text-xs" x-text="p.number || '#'"></span>
-                                    <div>
-                                        <div class="text-xs font-bold text-white" x-text="p.name"></div>
-                                        <div class="text-[10px] text-slate-400" x-text="p.position || 'Jugador'"></div>
-                                    </div>
-                                </div>
-
-                                <button @click="substituteIn(p)" class="px-2.5 py-1.5 bg-pitch-500/10 hover:bg-pitch-500/20 text-pitch-400 border border-pitch-500/30 rounded-lg text-[11px] font-bold transition flex items-center gap-1 active:scale-95">
-                                    <i class="fa-solid fa-arrow-right-to-bracket"></i>
-                                    <span>Entrar</span>
-                                </button>
-                            </div>
-                        </template>
-                        <template x-if="playersOnBench.length === 0">
-                            <div class="text-center py-8 text-slate-500 text-xs">No hay suplentes en banquillo.</div>
-                        </template>
-                    </div>
-                </div>
-            </div>
-
-            <!-- TABLA DE MINUTOS CALCULADOS -->
-            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-5 shadow-xl space-y-4">
-                <div class="flex justify-between items-center border-b border-slate-800 pb-3">
-                    <div>
-                        <h3 class="font-bold text-white text-sm flex items-center gap-2">
-                            <i class="fa-solid fa-calculator text-pitch-400"></i>
-                            <span>Minutajes Calculados para este Partido</span>
-                        </h3>
-                    </div>
-                </div>
-
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left text-xs text-slate-300">
-                        <thead class="bg-slate-950 text-slate-400 uppercase text-[10px] font-bold border-b border-slate-800">
-                            <tr>
-                                <th class="p-3">Dorsal</th>
-                                <th class="p-3">Jugador</th>
-                                <th class="p-3">Rol Inicial</th>
-                                <th class="p-3">Entrada / Salida</th>
-                                <th class="p-3 text-right">Minutos Jugados</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-slate-800/60">
-                            <template x-for="p in currentTeamPlayers" :key="p.id">
-                                <tr class="hover:bg-slate-800/40">
-                                    <td class="p-3 font-bold text-pitch-400" x-text="p.number || '-'"></td>
-                                    <td class="p-3 font-bold text-white" x-text="p.name"></td>
-                                    <td class="p-3">
-                                        <select x-model="matchPlayerStats[p.id].role" class="bg-slate-950 border border-slate-800 rounded px-2 py-1 text-[11px]">
-                                            <option value="Titular">Titular</option>
-                                            <option value="Suplente">Suplente</option>
-                                            <option value="No Convocado">No Convocado</option>
-                                        </select>
-                                    </td>
-                                    <td class="p-3 text-slate-400 text-[11px]" x-text="getInOutString(p.id)"></td>
-                                    <td class="p-3 text-right font-black text-emerald-400 text-sm">
-                                        <input type="number" x-model.number="matchPlayerStats[p.id].calculatedMinutes" class="w-16 bg-slate-950 border border-slate-800 rounded px-2 py-1 text-right text-xs font-bold text-pitch-400">'
-                                    </td>
-                                </tr>
-                            </template>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </section>
-
-        <!-- ================= VISTA 2: PLANTILLA Y EQUIPOS ================= -->
-        <section x-show="currentView === 'roster'" class="space-y-6">
-            
-            <!-- PANEL DE EQUIPOS -->
-            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-5 shadow-xl space-y-4">
-                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-slate-800 pb-3">
-                    <div>
-                        <h2 class="text-base font-bold text-white flex items-center gap-2">
-                            <i class="fa-solid fa-layer-group text-pitch-500"></i>
-                            <span>Tus Equipos</span>
-                        </h2>
-                    </div>
-                    <button @click="promptNewTeam()" class="px-3 py-2 bg-pitch-600 hover:bg-pitch-500 text-white text-xs font-semibold rounded-xl transition flex items-center gap-2 active:scale-95 shadow-md">
-                        <i class="fa-solid fa-plus"></i>
-                        <span>Nuevo Equipo</span>
-                    </button>
-                </div>
-
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                    <template x-for="t in teams" :key="t.id">
-                        <div class="bg-slate-950 border rounded-xl p-3 flex justify-between items-center transition"
-                             :class="t.id === currentTeamId ? 'border-pitch-500/80 bg-pitch-500/5' : 'border-slate-800'">
-                            <div>
-                                <h3 class="font-bold text-white text-sm" x-text="t.name"></h3>
-                                <p class="text-[11px] text-slate-400" x-text="`${getTeamPlayerCount(t.id)} Jugadores`"></p>
-                            </div>
-                            <div class="flex items-center gap-1">
-                                <button @click="currentTeamId = t.id" class="px-2.5 py-1 text-xs font-bold rounded-lg"
-                                        :class="t.id === currentTeamId ? 'bg-pitch-600 text-white' : 'bg-slate-800 text-slate-300 hover:bg-slate-700'">
-                                    <span x-text="t.id === currentTeamId ? 'Activo' : 'Seleccionar'"></span>
-                                </button>
-                                <template x-if="teams.length > 1">
-                                    <button @click="deleteTeam(t.id)" class="p-1.5 text-slate-500 hover:text-rose-400">
-                                        <i class="fa-solid fa-trash-can text-xs"></i>
-                                    </button>
-                                </template>
-                            </div>
-                        </div>
-                    </template>
-                </div>
-            </div>
-
-            <!-- PLANTILLA -->
-            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-5 shadow-xl space-y-4">
-                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-slate-800 pb-3">
-                    <div>
-                        <h2 class="text-base font-bold text-white flex items-center gap-2">
-                            <i class="fa-solid fa-users text-pitch-500"></i>
-                            <span>Plantilla: <span class="text-pitch-400" x-text="currentTeamObj.name"></span></span>
-                        </h2>
-                    </div>
-                    <button @click="promptAddPlayer()" class="px-3 py-2 bg-pitch-600 hover:bg-pitch-500 text-white text-xs font-semibold rounded-xl transition flex items-center gap-2 active:scale-95 shadow-md">
-                        <i class="fa-solid fa-user-plus"></i>
-                        <span>Añadir Jugador</span>
-                    </button>
-                </div>
-
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                    <template x-for="p in currentTeamPlayers" :key="p.id">
-                        <div class="bg-slate-950 border border-slate-800 hover:border-slate-700 rounded-2xl p-4 flex flex-col justify-between space-y-3 relative group">
-                            <div class="flex items-start gap-3">
-                                <img :src="p.photo || 'https://placehold.co/100x100/1e293b/ffffff?text=Jugador'" class="w-12 h-12 rounded-xl object-cover bg-slate-800 border border-slate-700">
-                                <div class="flex-1 min-w-0">
-                                    <div class="flex items-center gap-2">
-                                        <span class="text-xs font-black text-pitch-400" x-text="p.number ? `#${p.number}` : ''"></span>
-                                        <h3 class="font-bold text-white text-sm truncate" x-text="p.name"></h3>
-                                    </div>
-                                    <p class="text-[11px] text-slate-400" x-text="p.position || 'Sin Posición'"></p>
-                                </div>
-                            </div>
-
-                            <div class="grid grid-cols-3 gap-2 bg-slate-900/80 rounded-xl p-2 text-center text-[10px]">
-                                <div>
-                                    <span class="text-slate-400 block">Titular</span>
-                                    <span class="font-bold text-blue-400 text-xs" x-text="p.stats.starts"></span>
-                                </div>
-                                <div>
-                                    <span class="text-slate-400 block">Suplente</span>
-                                    <span class="font-bold text-amber-400 text-xs" x-text="p.stats.subs"></span>
-                                </div>
-                                <div>
-                                    <span class="text-slate-400 block">Minutos</span>
-                                    <span class="font-bold text-pitch-400 text-xs" x-text="p.stats.totalMinutes"></span>
-                                </div>
-                            </div>
-
-                            <div class="flex items-center gap-2 pt-2 border-t border-slate-800/80">
-                                <button @click="selectPlayerForCard(p.id)" class="flex-1 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-lg transition text-center">
-                                    Ver Ficha Técnica
-                                </button>
-                                <button @click="deletePlayer(p.id)" class="p-1.5 text-slate-500 hover:text-rose-400">
-                                    <i class="fa-solid fa-trash-can text-xs"></i>
-                                </button>
-                            </div>
-                        </div>
-                    </template>
-                </div>
-            </div>
-        </section>
-
-        <!-- ================= VISTA 3: FICHA INDIVIDUAL DEL JUGADOR ================= -->
-        <section x-show="currentView === 'player-card'" class="space-y-6">
-            
-            <template x-if="selectedPlayer">
-                <div class="space-y-6">
-                    <!-- CABECERA DE LA FICHA -->
-                    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-6 shadow-xl relative print-card">
-                        <div class="flex flex-col sm:flex-row items-center sm:items-start gap-4 sm:gap-6">
-                            <img :src="selectedPlayer.photo || 'https://placehold.co/150x150/1e293b/ffffff?text=Jugador'" class="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl object-cover border-2 border-pitch-500/40 shadow-xl bg-slate-800">
-                            
-                            <div class="flex-1 w-full space-y-3">
-                                <div class="flex flex-col sm:flex-row justify-between items-start gap-2">
-                                    <select x-model="selectedPlayerId" class="bg-slate-950 border border-slate-800 rounded-xl px-3 py-1.5 text-base font-bold text-white focus:outline-none focus:border-pitch-500">
-                                        <template x-for="p in currentTeamPlayers" :key="p.id">
-                                            <option :value="p.id" x-text="`${p.number ? '#' + p.number + ' ' : ''}${p.name}`"></option>
-                                        </template>
-                                    </select>
-                                    <div class="flex gap-2">
-                                        <button @click="saveAllDataToCloud(true)" class="no-print px-3 py-1.5 bg-pitch-600 hover:bg-pitch-500 text-white text-xs font-semibold rounded-xl transition flex items-center gap-1.5">
-                                            <i class="fa-solid fa-cloud-arrow-up"></i>
-                                            <span>Guardar Ficha</span>
-                                        </button>
-                                        <button @click="window.print()" class="no-print px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-xl transition flex items-center gap-1.5">
-                                            <i class="fa-solid fa-print"></i>
-                                            <span>Imprimir</span>
-                                        </button>
-                                    </div>
-                                </div>
-
-                                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
-                                    <div class="bg-slate-950 p-2.5 rounded-xl border border-slate-800">
-                                        <span class="text-[10px] text-slate-400 block uppercase font-bold">Posición</span>
-                                        <input type="text" x-model="selectedPlayer.position" @change="saveAllDataToCloud()" class="bg-transparent text-white font-bold w-full focus:outline-none">
-                                    </div>
-                                    <div class="bg-slate-950 p-2.5 rounded-xl border border-slate-800">
-                                        <span class="text-[10px] text-slate-400 block uppercase font-bold">Dorsal</span>
-                                        <input type="number" x-model.number="selectedPlayer.number" @change="saveAllDataToCloud()" class="bg-transparent text-white font-bold w-full focus:outline-none">
-                                    </div>
-                                    <div class="bg-slate-950 p-2.5 rounded-xl border border-slate-800">
-                                        <span class="text-[10px] text-slate-400 block uppercase font-bold">Titularidades</span>
-                                        <input type="number" x-model.number="selectedPlayer.stats.starts" @input="recalcSelectedPlayerAvg()" class="bg-transparent text-blue-400 font-black text-sm w-full focus:outline-none">
-                                    </div>
-                                    <div class="bg-slate-950 p-2.5 rounded-xl border border-slate-800">
-                                        <span class="text-[10px] text-slate-400 block uppercase font-bold">Suplencias</span>
-                                        <input type="number" x-model.number="selectedPlayer.stats.subs" @input="recalcSelectedPlayerAvg()" class="bg-transparent text-amber-400 font-black text-sm w-full focus:outline-none">
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- MINUTOS Y ESTADÍSTICAS -->
-                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-xl print-card">
-                            <span class="text-[10px] font-bold text-slate-400 uppercase">Partidos Totales</span>
-                            <div class="text-xl sm:text-2xl font-black text-white mt-1" x-text="Number(selectedPlayer.stats.starts || 0) + Number(selectedPlayer.stats.subs || 0)"></div>
-                        </div>
-                        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-xl print-card">
-                            <span class="text-[10px] font-bold text-slate-400 uppercase">Minutos Acumulados</span>
-                            <input type="number" x-model.number="selectedPlayer.stats.totalMinutes" @input="recalcSelectedPlayerAvg()" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-2 py-1 text-lg font-black text-pitch-400 mt-1">
-                        </div>
-                        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-xl print-card">
-                            <span class="text-[10px] font-bold text-slate-400 uppercase">Media Min/Partido</span>
-                            <div class="text-xl sm:text-2xl font-black text-purple-400 mt-1" x-text="`${selectedPlayer.stats.avgMinutes}'`"></div>
-                        </div>
-                        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-xl print-card">
-                            <span class="text-[10px] font-bold text-slate-400 uppercase">% Participación</span>
-                            <div class="text-xl sm:text-2xl font-black text-emerald-400 mt-1" x-text="`${Math.min(100, Math.round((selectedPlayer.stats.avgMinutes / 90) * 100))}%`"></div>
-                        </div>
-                    </div>
-
-                    <!-- PERCEPCIÓN DUPLICADA (JUGADOR VS ENTRENADOR) -->
-                    <div class="space-y-4">
-                        <h3 class="text-base font-bold text-white flex items-center gap-2">
-                            <i class="fa-solid fa-scale-balanced text-pitch-500"></i>
-                            <span>Evaluación de Percepción (Doble Visión)</span>
-                        </h3>
-
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
-                            <!-- BLOQUE JUGADOR -->
-                            <div class="bg-slate-900 border border-indigo-900/40 rounded-2xl p-4 sm:p-5 space-y-4 shadow-xl print-card">
-                                <div class="flex items-center justify-between border-b border-slate-800 pb-2">
-                                    <div class="flex items-center gap-2">
-                                        <i class="fa-solid fa-user text-indigo-400 text-sm"></i>
-                                        <h4 class="font-bold text-white text-sm">Percepción del JUGADOR</h4>
-                                    </div>
-                                    <span class="text-[10px] font-bold text-indigo-400 bg-indigo-500/10 px-2 py-0.5 rounded-md">AUTOEVALUACIÓN</span>
-                                </div>
-
-                                <div class="space-y-2">
-                                    <div class="flex justify-between items-center">
-                                        <label class="text-xs font-bold text-emerald-400">Puntos Fuertes (Jugador)</label>
-                                        <button @click="addPerceptionItem('player', 'strengths')" class="no-print text-[10px] bg-slate-800 px-2 py-0.5 rounded text-slate-300">+ Añadir</button>
-                                    </div>
-                                    <template x-for="(item, idx) in selectedPlayer.perceptions.player.strengths" :key="idx">
-                                        <div class="flex items-center gap-2">
-                                            <input type="text" x-model="selectedPlayer.perceptions.player.strengths[idx]" @change="saveAllDataToCloud()" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs text-white">
-                                            <button @click="removePerceptionItem('player', 'strengths', idx)" class="no-print text-slate-500 hover:text-rose-400 p-1"><i class="fa-solid fa-trash-can text-xs"></i></button>
-                                        </div>
-                                    </template>
-                                </div>
-
-                                <div class="space-y-2 pt-2 border-t border-slate-800">
-                                    <div class="flex justify-between items-center">
-                                        <label class="text-xs font-bold text-amber-400">Aspectos de Mejora (Jugador)</label>
-                                        <button @click="addPerceptionItem('player', 'improvements')" class="no-print text-[10px] bg-slate-800 px-2 py-0.5 rounded text-slate-300">+ Añadir</button>
-                                    </div>
-                                    <template x-for="(item, idx) in selectedPlayer.perceptions.player.improvements" :key="idx">
-                                        <div class="flex items-center gap-2">
-                                            <input type="text" x-model="selectedPlayer.perceptions.player.improvements[idx]" @change="saveAllDataToCloud()" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs text-white">
-                                            <button @click="removePerceptionItem('player', 'improvements', idx)" class="no-print text-slate-500 hover:text-rose-400 p-1"><i class="fa-solid fa-trash-can text-xs"></i></button>
-                                        </div>
-                                    </template>
-                                </div>
-                            </div>
-
-                            <!-- BLOQUE ENTRENADOR -->
-                            <div class="bg-slate-900 border border-pitch-900/40 rounded-2xl p-4 sm:p-5 space-y-4 shadow-xl print-card">
-                                <div class="flex items-center justify-between border-b border-slate-800 pb-2">
-                                    <div class="flex items-center gap-2">
-                                        <i class="fa-solid fa-clipboard-user text-pitch-400 text-sm"></i>
-                                        <h4 class="font-bold text-white text-sm">Percepción del ENTRENADOR</h4>
-                                    </div>
-                                    <span class="text-[10px] font-bold text-pitch-400 bg-pitch-500/10 px-2 py-0.5 rounded-md">CUERPO TÉCNICO</span>
-                                </div>
-
-                                <div class="space-y-2">
-                                    <div class="flex justify-between items-center">
-                                        <label class="text-xs font-bold text-emerald-400">Puntos Fuertes (Entrenador)</label>
-                                        <button @click="addPerceptionItem('coach', 'strengths')" class="no-print text-[10px] bg-slate-800 px-2 py-0.5 rounded text-slate-300">+ Añadir</button>
-                                    </div>
-                                    <template x-for="(item, idx) in selectedPlayer.perceptions.coach.strengths" :key="idx">
-                                        <div class="flex items-center gap-2">
-                                            <input type="text" x-model="selectedPlayer.perceptions.coach.strengths[idx]" @change="saveAllDataToCloud()" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs text-white">
-                                            <button @click="removePerceptionItem('coach', 'strengths', idx)" class="no-print text-slate-500 hover:text-rose-400 p-1"><i class="fa-solid fa-trash-can text-xs"></i></button>
-                                        </div>
-                                    </template>
-                                </div>
-
-                                <div class="space-y-2 pt-2 border-t border-slate-800">
-                                    <div class="flex justify-between items-center">
-                                        <label class="text-xs font-bold text-amber-400">Aspectos de Mejora (Entrenador)</label>
-                                        <button @click="addPerceptionItem('coach', 'improvements')" class="no-print text-[10px] bg-slate-800 px-2 py-0.5 rounded text-slate-300">+ Añadir</button>
-                                    </div>
-                                    <template x-for="(item, idx) in selectedPlayer.perceptions.coach.improvements" :key="idx">
-                                        <div class="flex items-center gap-2">
-                                            <input type="text" x-model="selectedPlayer.perceptions.coach.improvements[idx]" @change="saveAllDataToCloud()" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs text-white">
-                                            <button @click="removePerceptionItem('coach', 'improvements', idx)" class="no-print text-slate-500 hover:text-rose-400 p-1"><i class="fa-solid fa-trash-can text-xs"></i></button>
-                                        </div>
-                                    </template>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- 3 OBJETIVOS DE MEJORA -->
-                    <div class="space-y-4">
-                        <h3 class="text-base font-bold text-white flex items-center gap-2">
-                            <i class="fa-solid fa-bullseye text-pitch-500"></i>
-                            <span>3 Objetivos de Mejora Específicos</span>
-                        </h3>
-
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <template x-for="(g, idx) in selectedPlayer.goals" :key="idx">
-                                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 space-y-3 shadow-xl print-card">
-                                    <div class="flex justify-between items-center border-b border-slate-800 pb-2">
-                                        <span class="text-xs font-bold text-pitch-400" x-text="`OBJETIVO ${idx + 1}`"></span>
-                                        <select x-model="g.status" @change="saveAllDataToCloud()" class="bg-slate-950 border border-slate-800 text-[11px] rounded px-2 py-0.5 font-bold">
-                                            <option value="Pendiente">Pendiente</option>
-                                            <option value="En proceso">En proceso</option>
-                                            <option value="Conseguido">Conseguido</option>
-                                        </select>
-                                    </div>
-
-                                    <input type="text" x-model="g.title" @change="saveAllDataToCloud()" placeholder="Título del objetivo..." class="w-full bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs font-bold text-white">
-                                    <textarea x-model="g.actionPlan" @change="saveAllDataToCloud()" rows="3" placeholder="Plan de acción..." class="w-full bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs text-slate-300"></textarea>
-                                    
-                                    <div class="space-y-1">
-                                        <div class="flex justify-between text-[10px] text-slate-400 font-bold">
-                                            <span>Progreso:</span>
-                                            <span x-text="`${g.progress}%`"></span>
-                                        </div>
-                                        <input type="range" min="0" max="100" step="5" x-model.number="g.progress" @change="saveAllDataToCloud()" class="w-full accent-pitch-500">
-                                    </div>
-                                </div>
-                            </template>
-                        </div>
-                    </div>
-                </div>
-            </template>
-        </section>
-
-        <!-- ================= VISTA 4: AJUSTES ================= -->
-        <section x-show="currentView === 'settings'" class="space-y-6">
-            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-6">
-                <div>
-                    <h2 class="text-base font-bold text-white flex items-center gap-2">
-                        <i class="fa-solid fa-download text-pitch-500"></i>
-                        <span>Configuración de Cuenta & PWA</span>
-                    </h2>
-                </div>
-
-                <div class="p-4 bg-slate-950 border border-slate-800 rounded-xl space-y-2">
-                    <h3 class="text-xs font-bold text-white">Usuario Activo</h3>
-                    <p class="text-xs text-slate-400">ID de Usuario en la nube: <span class="font-mono text-pitch-400" x-text="currentUser?.uid"></span></p>
-                    <p class="text-xs text-slate-400">Email: <span class="text-white font-bold" x-text="currentUser?.email || 'Sin Email'"></span></p>
-                </div>
-
-                <div class="p-4 bg-slate-950 border border-slate-800 rounded-xl space-y-3">
-                    <h3 class="text-xs font-bold text-white">Instalación PWA</h3>
-                    <button @click="installPwa()" class="px-4 py-2 bg-pitch-600 hover:bg-pitch-500 text-white font-bold text-xs rounded-xl transition flex items-center gap-2">
-                        <i class="fa-solid fa-mobile-screen-button"></i>
-                        <span>Instalar en Pantalla de Inicio</span>
-                    </button>
-                </div>
-            </div>
-        </section>
-
-    </main>
-
-    <!-- NAVBAR INFERIOR (MÓVIL) -->
-    <nav x-show="currentUser" class="lg:hidden fixed bottom-0 left-0 right-0 bg-slate-900/95 backdrop-blur-xl border-t border-slate-800/80 z-40 px-2 py-1.5 no-print">
-        <div class="grid grid-cols-4 gap-1">
-            <button @click="currentView = 'match'" :class="currentView === 'match' ? 'text-pitch-400 bg-slate-800/80' : 'text-slate-400'" class="flex flex-col items-center justify-center py-2 rounded-xl transition">
-                <i class="fa-solid fa-stopwatch text-base"></i>
-                <span class="text-[10px] font-bold mt-0.5">Partido</span>
-            </button>
-            <button @click="currentView = 'roster'" :class="currentView === 'roster' ? 'text-pitch-400 bg-slate-800/80' : 'text-slate-400'" class="flex flex-col items-center justify-center py-2 rounded-xl transition">
-                <i class="fa-solid fa-users text-base"></i>
-                <span class="text-[10px] font-bold mt-0.5">Equipos</span>
-            </button>
-            <button @click="currentView = 'player-card'" :class="currentView === 'player-card' ? 'text-pitch-400 bg-slate-800/80' : 'text-slate-400'" class="flex flex-col items-center justify-center py-2 rounded-xl transition">
-                <i class="fa-solid fa-user-gear text-base"></i>
-                <span class="text-[10px] font-bold mt-0.5">Ficha</span>
-            </button>
-            <button @click="currentView = 'settings'" :class="currentView === 'settings' ? 'text-pitch-400 bg-slate-800/80' : 'text-slate-400'" class="flex flex-col items-center justify-center py-2 rounded-xl transition">
-                <i class="fa-solid fa-sliders text-base"></i>
-                <span class="text-[10px] font-bold mt-0.5">Ajustes</span>
-            </button>
-        </div>
-    </nav>
-
-    <!-- ALPINE & FIREBASE INTEGRATION LOGIC -->
-    <script>
-        // Registrar Service Worker embebido
-        //if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                const swCode = `
-                    const CACHE_NAME = 'coachsquad-cache-v2';
-                    self.addEventListener('install', (e) => e.waitUntil(self.skipWaiting()));
-                    self.addEventListener('activate', (e) => e.waitUntil(self.clients.claim()));
-                    self.addEventListener('fetch', (e) => e.respondWith(fetch(e.request).catch(() => caches.match(e.request))));
-                `;
-                const blob = new Blob([swCode], { type: 'application/javascript' });
-                navigator.serviceWorker.register(URL.createObjectURL(blob)).catch(err => console.log(err));
-            });
-        }
-
-        function pwaApp() {
-            return {
-                currentView: 'match',
-                deferredPrompt: null,
-                toast: { show: false, message: '', type: 'success' },
-
-                // Estado Auth
-                authLoading: true,
-                currentUser: null,
-                authMode: 'login',
-                authForm: { email: '', password: '' },
-
-                // Equipos y Jugadores
-                currentTeamId: 't1',
-                teams: [{ id: 't1', name: 'Mi Primer Equipo' }],
-                players: [],
-                selectedPlayerId: '',
-
-                // Partido
-                match: { opponent: 'Rival', halfDuration: 45, period: '1', seconds: 0, timerRunning: false, interval: null, status: 'config' },
-                matchPlayerStats: {},
-
-                async initApp() {
-                    window.addEventListener('beforeinstallprompt', (e) => {
-                        e.preventDefault();
-                        this.deferredPrompt = e;
-                    });
-
-                    // Escuchar Autenticación
-                    const waitForFB = setInterval(() => {
-                        if (window.FB) {
-                            clearInterval(waitForFB);
-                            this.setupAuthListener();
-                        }
-                    }, 50);
-                },
-
-                setupAuthListener() {
-                    window.FB.onAuthStateChanged(window.FB.auth, async (user) => {
-                        this.authLoading = false;
-                        this.currentUser = user;
-
-                        if (user) {
-                            this.showToast(`Sesión iniciada como ${user.email || 'Invitado'}`);
-                            await this.loadDataFromCloud();
-                        } else {
-                            // Intento de login automático por token inicial o anónimo si aplica
-                            if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                                try {
-                                    await window.FB.signInWithCustomToken(window.FB.auth, __initial_auth_token);
-                                } catch (e) {
-                                    console.log('Custom token signin failed, waiting user interaction');
-                                }
-                            }
-                        }
-                    });
-                },
-
-                async handleEmailAuth() {
-                    if (!this.authForm.email || !this.authForm.password) {
-                        this.showToast('Por favor completa todos los campos', 'error');
-                        return;
-                    }
-                    try {
-                        this.authLoading = true;
-                        if (this.authMode === 'login') {
-                            await window.FB.signInWithEmailAndPassword(window.FB.auth, this.authForm.email, this.authForm.password);
-                        } else {
-                            await window.FB.createUserWithEmailAndPassword(window.FB.auth, this.authForm.email, this.authForm.password);
-                        }
-                    } catch (e) {
-                        this.authLoading = false;
-                        this.showToast(e.message || 'Error de autenticación', 'error');
-                    }
-                },
-
-                async handleGoogleAuth() {
-                    try {
-                        const provider = new window.FB.GoogleAuthProvider();
-                        await window.FB.signInWithPopup(window.FB.auth, provider);
-                    } catch (e) {
-                        this.showToast('Error en Google Sign-In', 'error');
-                    }
-                },
-
-                async handleAnonymousAuth() {
-                    try {
-                        await window.FB.signInAnonymously(window.FB.auth);
-                    } catch (e) {
-                        this.showToast('Error al iniciar sesión anónima', 'error');
-                    }
-                },
-
-                async logout() {
-                    await window.FB.signOut(window.FB.auth);
-                    this.currentUser = null;
-                    this.teams = [{ id: 't1', name: 'Mi Primer Equipo' }];
-                    this.players = [];
-                },
-
-                // CARGA FIRESTORE (RULE 1 & 2 COMPLIANT)
-                async loadDataFromCloud() {
-                    if (!this.currentUser) return;
-                    try {
-                        const docRef = window.FB.doc(window.FB.db, 'artifacts', window.FB.appId, 'users', this.currentUser.uid, 'appData', 'main');
-                        const snap = await window.FB.getDoc(docRef);
-
-                        if (snap.exists()) {
-                            const data = snap.data();
-                            if (data.teams && data.teams.length > 0) this.teams = data.teams;
-                            if (data.players) this.players = data.players;
-                            if (data.currentTeamId) this.currentTeamId = data.currentTeamId;
-                        } else {
-                            // Crear estado inicial por defecto para el usuario
-                            await this.saveAllDataToCloud();
-                        }
-
-                        if (this.currentTeamPlayers.length > 0) {
-                            this.selectedPlayerId = this.currentTeamPlayers[0].id;
-                        }
-                        this.initMatchData();
-                    } catch (e) {
-                        console.error('Error cargando de Firestore:', e);
-                    }
-                },
-
-                async saveAllDataToCloud(showToast = false) {
-                    if (!this.currentUser) return;
-                    try {
-                        const docRef = window.FB.doc(window.FB.db, 'artifacts', window.FB.appId, 'users', this.currentUser.uid, 'appData', 'main');
-                        await window.FB.setDoc(docRef, {
-                            teams: this.teams,
-                            players: this.players,
-                            currentTeamId: this.currentTeamId,
-                            updatedAt: new Date().toISOString()
-                        });
-                        if (showToast) this.showToast('¡Guardado en la nube correctamente!');
-                    } catch (e) {
-                        console.error('Error guardando en Firestore:', e);
-                        this.showToast('Error de guardado en la nube', 'error');
-                    }
-                },
-
-                get currentTeamObj() {
-                    return this.teams.find(t => t.id === this.currentTeamId) || this.teams[0];
-                },
-
-                get currentTeamPlayers() {
-                    return this.players.filter(p => p.teamId === this.currentTeamId);
-                },
-
-                get selectedPlayer() {
-                    return this.players.find(p => p.id === this.selectedPlayerId) || this.currentTeamPlayers[0];
-                },
-
-                get currentMatchMinute() {
-                    const baseMins = (Number(this.match.period) - 1) * Number(this.match.halfDuration);
-                    return baseMins + Math.floor(this.match.seconds / 60);
-                },
-
-                get playersOnField() {
-                    return this.currentTeamPlayers.filter(p => this.matchPlayerStats[p.id]?.currentlyOnField);
-                },
-
-                get playersOnBench() {
-                    return this.currentTeamPlayers.filter(p => this.matchPlayerStats[p.id] && !this.matchPlayerStats[p.id].currentlyOnField);
-                },
-
-                initMatchData() {
-                    this.currentTeamPlayers.forEach((p, index) => {
-                        const isStarter = index < 11;
-                        this.matchPlayerStats[p.id] = {
-                            role: isStarter ? 'Titular' : 'Suplente',
-                            currentlyOnField: isStarter,
-                            entryMinute: isStarter ? 0 : null,
-                            calculatedMinutes: 0,
-                            intervals: isStarter ? [{ in: 0, out: null }] : []
-                        };
-                    });
-                },
-
-                toggleTimer() {
-                    if (this.match.timerRunning) {
-                        clearInterval(this.match.interval);
-                        this.match.timerRunning = false;
-                        this.match.status = 'paused';
-                    } else {
-                        this.match.timerRunning = true;
-                        this.match.status = 'live';
-                        this.match.interval = setInterval(() => {
-                            this.match.seconds++;
-                            this.recalculateMatchMinutes();
-                        }, 1000);
-                    }
-                },
-
-                resetTimerPrompt() {
-                    if (confirm('¿Reiniciar cronómetro?')) {
-                        clearInterval(this.match.interval);
-                        this.match.seconds = 0;
-                        this.match.timerRunning = false;
-                        this.match.status = 'config';
-                        this.initMatchData();
-                    }
-                },
-
-                formatTime(sec) {
-                    const m = Math.floor(sec / 60).toString().padStart(2, '0');
-                    const s = (sec % 60).toString().padStart(2, '0');
-                    return `${m}:${s}`;
-                },
-
-                substituteIn(player) {
-                    const currentMin = this.currentMatchMinute;
-                    const st = this.matchPlayerStats[player.id];
-                    st.currentlyOnField = true;
-                    st.entryMinute = currentMin;
-                    st.intervals.push({ in: currentMin, out: null });
-                    this.recalculateMatchMinutes();
-                },
-
-                substituteOut(player) {
-                    const currentMin = this.currentMatchMinute;
-                    const st = this.matchPlayerStats[player.id];
-                    st.currentlyOnField = false;
-                    const lastInterval = st.intervals[st.intervals.length - 1];
-                    if (lastInterval && lastInterval.out === null) lastInterval.out = currentMin;
-                    this.recalculateMatchMinutes();
-                },
-
-                recalculateMatchMinutes() {
-                    const currMin = this.currentMatchMinute;
-                    this.currentTeamPlayers.forEach(p => {
-                        const st = this.matchPlayerStats[p.id];
-                        if (!st) return;
-                        let total = 0;
-                        st.intervals.forEach(inv => {
-                            const exit = inv.out !== null ? inv.out : currMin;
-                            total += Math.max(0, exit - inv.in);
-                        });
-                        st.calculatedMinutes = total;
-                    });
-                },
-
-                getInOutString(playerId) {
-                    const st = this.matchPlayerStats[playerId];
-                    if (!st || st.intervals.length === 0) return 'Sin participar';
-                    return st.intervals.map(i => `${i.in}' -> ${i.out !== null ? i.out + '\'' : 'Campo'}`).join(', ');
-                },
-
-                async saveMatchAndSyncPlayers() {
-                    this.recalculateMatchMinutes();
-                    this.currentTeamPlayers.forEach(p => {
-                        const mStat = this.matchPlayerStats[p.id];
-                        if (mStat) {
-                            if (mStat.role === 'Titular') p.stats.starts = (p.stats.starts || 0) + 1;
-                            else if (mStat.role === 'Suplente' && mStat.calculatedMinutes > 0) p.stats.subs = (p.stats.subs || 0) + 1;
-
-                            p.stats.totalMinutes = (p.stats.totalMinutes || 0) + mStat.calculatedMinutes;
-                            const totalGames = (p.stats.starts || 0) + (p.stats.subs || 0);
-                            p.stats.avgMinutes = totalGames > 0 ? Math.round(p.stats.totalMinutes / totalGames) : 0;
-                        }
-                    });
-
-                    await this.saveAllDataToCloud(true);
-                },
-
-                promptNewTeam() {
-                    const name = prompt('Nombre del equipo:');
-                    if (name && name.trim()) {
-                        const newId = 't_' + Date.now();
-                        this.teams.push({ id: newId, name: name.trim() });
-                        this.currentTeamId = newId;
-                        this.saveAllDataToCloud(true);
-                    }
-                },
-
-                deleteTeam(id) {
-                    if (confirm('¿Eliminar este equipo?')) {
-                        this.teams = this.teams.filter(t => t.id !== id);
-                        this.players = this.players.filter(p => p.teamId !== id);
-                        this.currentTeamId = this.teams[0].id;
-                        this.saveAllDataToCloud(true);
-                    }
-                },
-
-                getTeamPlayerCount(teamId) {
-                    return this.players.filter(p => p.teamId === teamId).length;
-                },
-
-                promptAddPlayer() {
-                    const name = prompt('Nombre del Jugador:');
-                    if (name && name.trim()) {
-                        const newP = {
-                            id: 'p_' + Date.now(),
-                            teamId: this.currentTeamId,
-                            name: name.trim(),
-                            number: 10,
-                            position: 'Centrocampista',
-                            photo: '',
-                            stats: { starts: 0, subs: 0, totalMinutes: 0, avgMinutes: 0 },
-                            perceptions: {
-                                player: { strengths: ['Pase'], improvements: ['Táctica'] },
-                                coach: { strengths: ['Actitud'], improvements: ['Físico'] }
-                            },
-                            goals: [
-                                { title: 'Objetivo 1', actionPlan: '', progress: 0, status: 'Pendiente' },
-                                { title: 'Objetivo 2', actionPlan: '', progress: 0, status: 'Pendiente' },
-                                { title: 'Objetivo 3', actionPlan: '', progress: 0, status: 'Pendiente' }
-                            ]
-                        };
-                        this.players.push(newP);
-                        this.selectPlayerForCard(newP.id);
-                        this.initMatchData();
-                        this.saveAllDataToCloud(true);
-                    }
-                },
-
-                deletePlayer(id) {
-                    if (confirm('¿Eliminar jugador?')) {
-                        this.players = this.players.filter(p => p.id !== id);
-                        this.saveAllDataToCloud(true);
-                    }
-                },
-
-                selectPlayerForCard(id) {
-                    this.selectedPlayerId = id;
-                    this.currentView = 'player-card';
-                },
-
-                recalcSelectedPlayerAvg() {
-                    if (!this.selectedPlayer) return;
-                    const st = this.selectedPlayer.stats;
-                    const totalG = Number(st.starts || 0) + Number(st.subs || 0);
-                    st.avgMinutes = totalG > 0 ? Math.round(Number(st.totalMinutes || 0) / totalG) : 0;
-                    this.saveAllDataToCloud();
-                },
-
-                addPerceptionItem(person, type) {
-                    this.selectedPlayer.perceptions[person][type].push('');
-                    this.saveAllDataToCloud();
-                },
-
-                removePerceptionItem(person, type, idx) {
-                    this.selectedPlayer.perceptions[person][type].splice(idx, 1);
-                    this.saveAllDataToCloud();
-                },
-
-                installPwa() {
-                    if (this.deferredPrompt) {
-                        this.deferredPrompt.prompt();
-                        this.deferredPrompt = null;
-                    } else {
-                        alert('Selecciona "Añadir a la pantalla de inicio" en las opciones de tu navegador.');
-                    }
-                },
-
-                showToast(msg, type = 'success') {
-                    this.toast.message = msg;
-                    this.toast.type = type;
-                    this.toast.show = true;
-                    setTimeout(() => { this.toast.show = false; }, 3000);
-                }
-            };
-        }
-    </script>
-</body>
-</html>
+                                    <span class="w-8 h-8 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-400 font-black flex items-center justify-
