@@ -42,7 +42,7 @@
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 
-    <!-- FIREBASE SDKs & CONFIGURACIÓN LIMPIA -->
+    <!-- FIREBASE SDKs (Modular ESM) -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { 
@@ -223,7 +223,7 @@
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 sm:pt-6 flex-1 w-full space-y-6" x-show="currentUser" x-cloak>
         <div class="flex border-b border-slate-800/80 space-x-2 no-print">
             <button @click="currentView = 'match'" :class="currentView === 'match' ? 'border-pitch-500 text-pitch-400 bg-slate-900/60' : 'border-transparent text-slate-400 hover:text-slate-200'" class="px-4 py-2.5 font-bold text-xs rounded-t-xl border-b-2 transition flex items-center gap-2">
-                <i class="fa-solid fa-stopwatch text-sm"></i> Partido
+                <i class="fa-solid fa-stopwatch text-sm"></i> Partido y Minutos
             </button>
             <button @click="currentView = 'roster'" :class="currentView === 'roster' ? 'border-pitch-500 text-pitch-400 bg-slate-900/60' : 'border-transparent text-slate-400 hover:text-slate-200'" class="px-4 py-2.5 font-bold text-xs rounded-t-xl border-b-2 transition flex items-center gap-2">
                 <i class="fa-solid fa-users text-sm"></i> Plantilla
@@ -234,14 +234,37 @@
         <section x-show="currentView === 'match'" class="space-y-6">
             <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-6 shadow-xl space-y-4">
                 <h3 class="text-sm font-bold text-pitch-400">Gestor de Partido y Minutajes</h3>
-                <div class="flex items-center gap-4">
+                <div class="flex flex-wrap items-center gap-4">
                     <div class="text-3xl font-mono font-bold text-white" x-text="formatTime(match.seconds)">00:00</div>
+                    <div class="text-xs text-slate-400">Minuto Oficial: <span class="text-white font-bold" x-text="currentMatchMinute + '\''">0'</span></div>
                     <button @click="toggleTimer()" class="px-4 py-2 bg-pitch-600 hover:bg-pitch-500 text-white text-xs font-bold rounded-xl">
                         <span x-text="match.timerRunning ? 'Pausar' : 'Iniciar'"></span>
                     </button>
                     <button @click="resetTimerPrompt()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold rounded-xl">
                         Resetear
                     </button>
+                </div>
+            </div>
+
+            <!-- SECCIÓN EN CAMPO Y BANQUILLO -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 space-y-3">
+                    <h4 class="text-xs font-bold text-emerald-400 uppercase">En Campo (<span x-text="playersOnField.length"></span>)</h4>
+                    <template x-for="p in playersOnField" :key="p.id">
+                        <div class="bg-slate-950 p-2.5 rounded-xl border border-slate-800 flex justify-between items-center text-xs">
+                            <span class="text-white font-bold" x-text="p.name"></span>
+                            <button @click="substituteOut(p)" class="text-rose-400 hover:underline">Sustituir</button>
+                        </div>
+                    </template>
+                </div>
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 space-y-3">
+                    <h4 class="text-xs font-bold text-amber-400 uppercase">Banquillo (<span x-text="playersOnBench.length"></span>)</h4>
+                    <template x-for="p in playersOnBench" :key="p.id">
+                        <div class="bg-slate-950 p-2.5 rounded-xl border border-slate-800 flex justify-between items-center text-xs">
+                            <span class="text-white font-bold" x-text="p.name"></span>
+                            <button @click="substituteIn(p)" class="text-pitch-400 hover:underline">Entrar</button>
+                        </div>
+                    </template>
                 </div>
             </div>
         </section>
@@ -304,6 +327,10 @@
                     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
                 },
 
+                get currentMatchMinute() {
+                    return Math.floor(this.match.seconds / 60);
+                },
+
                 toggleTimer() {
                     this.match.timerRunning = !this.match.timerRunning;
                 },
@@ -311,6 +338,16 @@
                 resetTimerPrompt() {
                     this.match.seconds = 0;
                     this.match.timerRunning = false;
+                },
+
+                substituteIn(player) {
+                    this.playersOnBench = this.playersOnBench.filter(p => p.id !== player.id);
+                    this.playersOnField.push(player);
+                },
+
+                substituteOut(player) {
+                    this.playersOnField = this.playersOnField.filter(p => p.id !== player.id);
+                    this.playersOnBench.push(player);
                 },
 
                 async handleEmailAuth() {
