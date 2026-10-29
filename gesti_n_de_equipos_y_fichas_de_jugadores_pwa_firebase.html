@@ -82,6 +82,7 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
+        // Exportar referencias globalmente de forma segura
         window.FB = {
             auth,
             db,
@@ -102,6 +103,9 @@
             deleteDoc,
             getDocs
         };
+
+        // Disparar evento personalizado indicando que Firebase está listo
+        window.dispatchEvent(new Event('firebase-ready'));
     </script>
 
     <style>
@@ -288,7 +292,7 @@
         </section>
     </main>
 
-    <!-- LOGICA ALPINE PWA -->
+    <!-- LOGICA ALPINE PWA CON ESPERA DE FIREBASE -->
     <script>
         function pwaApp() {
             return {
@@ -307,6 +311,17 @@
                 toast: { show: false, message: '', type: 'success' },
 
                 initApp() {
+                    // Esperar a que el módulo de Firebase cargue por completo antes de escuchar la autenticación
+                    if (window.FB && window.FB.auth) {
+                        this.setupAuthListener();
+                    } else {
+                        window.addEventListener('firebase-ready', () => {
+                            this.setupAuthListener();
+                        });
+                    }
+                },
+
+                setupAuthListener() {
                     window.FB.onAuthStateChanged(window.FB.auth, (user) => {
                         this.currentUser = user;
                         this.authLoading = false;
@@ -338,87 +353,3 @@
                 resetTimerPrompt() {
                     this.match.seconds = 0;
                     this.match.timerRunning = false;
-                },
-
-                substituteIn(player) {
-                    this.playersOnBench = this.playersOnBench.filter(p => p.id !== player.id);
-                    this.playersOnField.push(player);
-                },
-
-                substituteOut(player) {
-                    this.playersOnField = this.playersOnField.filter(p => p.id !== player.id);
-                    this.playersOnBench.push(player);
-                },
-
-                async handleEmailAuth() {
-                    try {
-                        this.authLoading = true;
-                        if (this.authMode === 'login') {
-                            await window.FB.signInWithEmailAndPassword(window.FB.auth, this.authForm.email, this.authForm.password);
-                        } else {
-                            await window.FB.createUserWithEmailAndPassword(window.FB.auth, this.authForm.email, this.authForm.password);
-                        }
-                        this.showToast("¡Sesión iniciada correctamente!");
-                    } catch (error) {
-                        this.showToast(error.message, 'error');
-                        this.authLoading = false;
-                    }
-                },
-
-                async handleGoogleAuth() {
-                    try {
-                        this.authLoading = true;
-                        const provider = new window.FB.GoogleAuthProvider();
-                        await window.FB.signInWithPopup(window.FB.auth, provider);
-                        this.showToast("¡Autenticado con Google con éxito!");
-                    } catch (error) {
-                        this.showToast(error.message, 'error');
-                        this.authLoading = false;
-                    }
-                },
-
-                async handleAnonymousAuth() {
-                    try {
-                        this.authLoading = true;
-                        await window.FB.signInAnonymously(window.FB.auth);
-                        this.showToast("Acceso como invitado temporal concedido.");
-                    } catch (error) {
-                        this.showToast(error.message, 'error');
-                        this.authLoading = false;
-                    }
-                },
-
-                async logout() {
-                    await window.FB.signOut(window.FB.auth);
-                    this.currentUser = null;
-                    this.teams = [];
-                    this.showToast("Sesión cerrada.");
-                },
-
-                loadInitialData() {
-                    this.teams = [
-                        { id: 'team-1', name: 'Equipo Principal A' }
-                    ];
-                    this.currentTeamId = 'team-1';
-                    this.currentTeamPlayers = [
-                        { id: 'p1', number: '1', name: 'Portero Titular', position: 'POR' },
-                        { id: 'p2', number: '4', name: 'Defensa Central', position: 'DEF' }
-                    ];
-                    this.playersOnField = [this.currentTeamPlayers[0]];
-                    this.playersOnBench = [this.currentTeamPlayers[1]];
-                },
-
-                promptNewTeam() {
-                    const name = prompt("Nombre del nuevo equipo:");
-                    if (name) {
-                        const newT = { id: 'team-' + Date.now(), name };
-                        this.teams.push(newT);
-                        this.currentTeamId = newT.id;
-                        this.showToast("Equipo creado.");
-                    }
-                }
-            }
-        }
-    </script>
-</body>
-</html>
