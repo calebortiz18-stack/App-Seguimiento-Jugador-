@@ -37,12 +37,20 @@
         }
     </script>
 
-    <!-- FontAwesome & Alpine JS -->
+    <!-- FontAwesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 
-    <!-- FIREBASE SDKs (Modular ESM) -->
+    <!-- 1. DESACTIVAR AUTOLOAD DE ALPINE -->
+    <script>
+        window.deferLoadingAlpine = function (callback) {
+            window.startAlpine = callback;
+        };
+    </script>
+    <!-- Alpine JS Script sin atributo defer para control total -->
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
+    <!-- 2. CARGA DE FIREBASE SDKs -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { 
@@ -78,11 +86,12 @@
             measurementId: "G-F9NWD497XN"
         };
 
+        // Inicializar Firebase
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // Exportar referencias globalmente de forma segura
+        // Guardar globalmente
         window.FB = {
             auth,
             db,
@@ -104,8 +113,10 @@
             getDocs
         };
 
-        // Disparar evento personalizado indicando que Firebase está listo
-        window.dispatchEvent(new Event('firebase-ready'));
+        // 3. INICIAR ALPINE ÚNICAMENTE CUANDO FIREBASE YA EXISTE
+        if (typeof window.startAlpine === 'function') {
+            window.startAlpine();
+        }
     </script>
 
     <style>
@@ -292,64 +303,13 @@
         </section>
     </main>
 
-    <!-- LOGICA ALPINE PWA CON ESPERA DE FIREBASE -->
+    <!-- COMPONENTE ALPINE -->
     <script>
         function pwaApp() {
             return {
                 currentUser: null,
                 authLoading: true,
                 authMode: 'login',
-                authForm: { email: '', password: '' },
-                currentView: 'match',
-                teams: [],
-                currentTeamId: null,
-                currentTeamPlayers: [],
-                playersOnField: [],
-                playersOnBench: [],
-                match: { opponent: '', halfDuration: 45, period: 1, seconds: 0, timerRunning: false },
-                matchPlayerStats: {},
-                toast: { show: false, message: '', type: 'success' },
-
-                initApp() {
-                    // Esperar a que el módulo de Firebase cargue por completo antes de escuchar la autenticación
-                    if (window.FB && window.FB.auth) {
-                        this.setupAuthListener();
-                    } else {
-                        window.addEventListener('firebase-ready', () => {
-                            this.setupAuthListener();
-                        });
-                    }
-                },
-
-                setupAuthListener() {
-                    window.FB.onAuthStateChanged(window.FB.auth, (user) => {
-                        this.currentUser = user;
-                        this.authLoading = false;
-                        if (user) {
-                            this.loadInitialData();
-                        }
-                    });
-                },
-
-                showToast(message, type = 'success') {
-                    this.toast = { show: true, message, type };
-                    setTimeout(() => { this.toast.show = false; }, 3000);
-                },
-
-                formatTime(seconds) {
-                    const mins = Math.floor(seconds / 60);
-                    const secs = seconds % 60;
-                    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-                },
-
-                get currentMatchMinute() {
-                    return Math.floor(this.match.seconds / 60);
-                },
-
-                toggleTimer() {
-                    this.match.timerRunning = !this.match.timerRunning;
-                },
-
-                resetTimerPrompt() {
+                authFormmerPrompt() {
                     this.match.seconds = 0;
                     this.match.timerRunning = false;
