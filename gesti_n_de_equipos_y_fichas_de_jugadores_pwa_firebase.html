@@ -106,16 +106,29 @@
 
         // Global Firebase Configuration & State Setup
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'coachsquad-app';
-        const firebaseConfig = typeof __firebase_config !== 'undefined' 
-            ? JSON.parse(__firebase_config) 
-            : {
-                apiKey: "demo-api-key",
-                authDomain: "demo-project.firebaseapp.com",
-                projectId: "demo-project",
-                storageBucket: "demo-project.appspot.com",
-                messagingSenderId: "123456789",
-                appId: "1:123456789:web:123456"
-            };
+        <script type="module">
+  // Import the functions you need from the SDKs you need
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/13.1.0/firebase-app.js";
+  import { getAnalytics } from "https://www.gstatic.com/firebasejs/13.1.0/firebase-analytics.js";
+  // TODO: Add SDKs for Firebase products that you want to use
+  // https://firebase.google.com/docs/web/setup#available-libraries
+
+  // Your web app's Firebase configuration
+  // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+  const firebaseConfig = {
+    apiKey: "AIzaSyDFjM15xA5PxxwCUSIRNjegKN7PPfL8hcc",
+    authDomain: "gestion-de-equipos-d2839.firebaseapp.com",
+    projectId: "gestion-de-equipos-d2839",
+    storageBucket: "gestion-de-equipos-d2839.firebasestorage.app",
+    messagingSenderId: "681431108301",
+    appId: "1:681431108301:web:15307130648999e140b784",
+    measurementId: "G-F9NWD497XN"
+  };
+
+  // Initialize Firebase
+  const app = initializeApp(firebaseConfig);
+  const analytics = getAnalytics(app);
+</script>
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
